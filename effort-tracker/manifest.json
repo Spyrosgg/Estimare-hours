@@ -1,0 +1,27 @@
+{
+  "name": "Effort Tracker",
+  "description": "Track member effort per card and visualise team load over time",
+  "icon": {
+    "url": "https://your-domain.com/icon.png"
+  },
+  "capabilities": [
+    "card-details",
+    "board-buttons",
+    "plugin-data"
+  ],
+  "connectors": {
+    "iframe": {
+      "url": "https://your-domain.com/connector.js"
+    }
+  },
+  "apiVersion": "1.0",
+  "author": "Your Name",
+  "scopes": [
+    "read",
+    "write"
+  ],
+  "permissions": [
+    "user",
+    "board"
+  ]
+}
