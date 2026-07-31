@@ -2,7 +2,7 @@
   "name": "Effort Tracker",
   "description": "Track member effort per card and visualise team load over time",
   "icon": {
-    "url": "https://github.com/Spyrosgg/Trello-utilisation-tracker/blob/main/effort-tracker/loft3d.svg"
+    "url": "https://spyrosgg.github.io/Trello-utilisation-tracker/loft3d.svg"
   },
   "capabilities": [
     "card-details",
