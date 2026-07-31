@@ -11,7 +11,7 @@
   ],
   "connectors": {
     "iframe": {
-      "url": "https://your-domain.com/connector.js"
+      "url": "https://github.com/Spyrosgg/Trello-utilisation-tracker/blob/main/effort-tracker/connector.js"
     }
   },
   "apiVersion": "1.0",
