@@ -78,18 +78,16 @@ function renderChart(history) {
 
   // Need at least 2 points for a meaningful line
   if (!history || history.length < 2) {
-    // Draw a simple message instead
     var ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#5e6c84";
-    ctx.font = "13px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.font = "12px -apple-system, BlinkMacSystemFont, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Save estimates a few more times", canvas.width / 2, canvas.height / 2 - 8);
-    ctx.fillText("to see the trend over time", canvas.width / 2, canvas.height / 2 + 12);
+    ctx.fillText("Save estimates a few more times", canvas.width / 2, 70);
+    ctx.fillText("to see the trend over time", canvas.width / 2, 90);
     return;
   }
 
-  // Format labels as short date + time
   var labels = history.map(function (point) {
     var d = new Date(point.ts);
     return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) +
@@ -100,7 +98,7 @@ function renderChart(history) {
     return point.total;
   });
 
-  // Destroy previous chart instance if it exists (important when re-rendering)
+  // Destroy previous instance
   if (window._hoursChart) {
     window._hoursChart.destroy();
   }
@@ -113,7 +111,7 @@ function renderChart(history) {
         label: "Total estimated hours",
         data: values,
         borderColor: "#0079bf",
-        backgroundColor: "rgba(0, 121, 191, 0.1)",
+        backgroundColor: "rgba(0, 121, 191, 0.12)",
         fill: true,
         tension: 0.3,
         pointRadius: 3,
@@ -122,7 +120,10 @@ function renderChart(history) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: false,   // respect the CSS height
+      layout: {
+        padding: { top: 4, bottom: 4, left: 4, right: 4 }
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -136,16 +137,20 @@ function renderChart(history) {
       scales: {
         y: {
           beginAtZero: true,
+          ticks: {
+            font: { size: 10 },
+            maxTicksLimit: 5
+          },
           title: {
-            display: true,
-            text: "Hours"
+            display: false
           }
         },
         x: {
           ticks: {
-            maxRotation: 45,
+            maxRotation: 40,
             minRotation: 30,
-            font: { size: 10 }
+            font: { size: 9 },
+            maxTicksLimit: 6
           }
         }
       }

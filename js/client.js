@@ -106,7 +106,7 @@ TrelloPowerUp.initialize({
           return t.popup({
             title: "Team Workload (Hours)",
             url: "./workload.html",
-            height: 520
+            height: 480
           });
         }
       }
