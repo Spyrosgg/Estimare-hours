@@ -8,7 +8,10 @@ body {
   background: #fff;
 }
 
-.estimate-container,
+.estimate-container {
+  max-width: 320px;
+}
+
 .workload-container {
   max-width: 480px;
 }
@@ -136,13 +139,13 @@ body {
 .chart-wrapper {
   position: relative;
   width: 100%;
-  height: 180px;          /* hard limit */
-  max-height: 180px;
+  height: 260px;
+  max-height: 260px;
   overflow: hidden;
 }
 
 #hoursChart {
   width: 100% !important;
-  height: 180px !important;
-  max-height: 180px !important;
+  height: 260px !important;
+  max-height: 260px !important;
 }
