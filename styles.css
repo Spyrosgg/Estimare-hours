@@ -129,6 +129,24 @@ body {
   padding: 20px 0;
 }
 
+/* 2-column member list */
+.members-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.members-grid .workload-row {
+  min-width: 0;
+}
+
+.members-grid .workload-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
 /* Chart section – fixed height so it never expands */
 .chart-section {
   margin-top: 16px;

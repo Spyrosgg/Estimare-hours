@@ -51,11 +51,18 @@ t.render(async function () {
         "capacity = (" + memberCount + "−1)×37.5 = <strong>" + weeklyCapacity + "h / week</strong>";
       container.appendChild(info);
 
+      // 2-column grid for members
+      var grid = document.createElement("div");
+      grid.className = "members-grid";
+
       memberIds.forEach(function (id) {
         var member = membersMap[id];
         var name = member
           ? (member.fullName || member.username)
           : "Unknown member";
+
+        var hours = Math.round(totals[id] * 10) / 10;
+        var util = Math.round((totals[id] / 37.5) * 100); // (hours / 37.5) * 100, whole %
 
         var row = document.createElement("div");
         row.className = "workload-row";
@@ -66,12 +73,14 @@ t.render(async function () {
 
         var hoursEl = document.createElement("span");
         hoursEl.className = "workload-hours";
-        hoursEl.textContent = Math.round(totals[id] * 10) / 10 + "h";
+        hoursEl.textContent = hours + "h (" + util + "%)";
 
         row.appendChild(nameEl);
         row.appendChild(hoursEl);
-        container.appendChild(row);
+        grid.appendChild(row);
       });
+
+      container.appendChild(grid);
     }
 
     await renderUtilisationChart(byCard, weeklyCapacity, memberCount);
