@@ -12,7 +12,7 @@ t.render(function () {
     var members = card.members || [];
     var memberHours = results[1] || {};
 
-    window._currentCardId = card.id; // remember for later
+    window._currentCardId = card.id;
 
     var container = document.getElementById("members-list");
     container.innerHTML = "";
@@ -78,10 +78,8 @@ document.getElementById("save-btn").addEventListener("click", function () {
     }
   });
 
-  // 1. Save the per-card data
   t.set("card", "shared", "memberHours", newMemberHours)
     .then(function () {
-      // 2. Update the board-level summary using only this card's data
       return updateBoardSummaryForThisCard(newMemberHours);
     })
     .then(function () {
@@ -94,39 +92,52 @@ document.getElementById("save-btn").addEventListener("click", function () {
 });
 
 /**
- * Keep a board-level map of totals.
- * We also keep a secondary map of "hours contributed by each card"
- * so we can correctly subtract the old value when a card is updated.
- *
- * Structure stored on the board:
+ * Board data structure:
  * {
  *   totals: { memberId: number },
- *   byCard: { cardId: { memberId: number } }
+ *   byCard: { cardId: { memberId: number } },
+ *   history: [ { ts: ISO-string, total: number }, ... ]   // last ~30 snapshots
  * }
  */
 function updateBoardSummaryForThisCard(newMemberHours) {
   var cardId = window._currentCardId;
 
   return t.get("board", "shared", "hoursData").then(function (data) {
-    data = data || { totals: {}, byCard: {} };
+    data = data || { totals: {}, byCard: {}, history: [] };
 
-    // Remove the old contribution of this card
+    // Remove old contribution of this card
     var oldHours = data.byCard[cardId] || {};
     Object.keys(oldHours).forEach(function (memberId) {
       data.totals[memberId] = (data.totals[memberId] || 0) - oldHours[memberId];
       if (data.totals[memberId] <= 0) delete data.totals[memberId];
     });
 
-    // Add the new contribution
+    // Add new contribution
     data.byCard[cardId] = newMemberHours;
     Object.keys(newMemberHours).forEach(function (memberId) {
       data.totals[memberId] = (data.totals[memberId] || 0) + newMemberHours[memberId];
     });
 
-    // Clean up empty entries
+    // Clean zeros
     Object.keys(data.totals).forEach(function (id) {
       if (data.totals[id] <= 0) delete data.totals[id];
     });
+
+    // Calculate current team total
+    var teamTotal = 0;
+    Object.keys(data.totals).forEach(function (id) {
+      teamTotal += data.totals[id];
+    });
+
+    // Append a history snapshot (keep last 30 to stay under size limit)
+    data.history = data.history || [];
+    data.history.push({
+      ts: new Date().toISOString(),
+      total: Math.round(teamTotal * 10) / 10
+    });
+    if (data.history.length > 30) {
+      data.history = data.history.slice(-30);
+    }
 
     return t.set("board", "shared", "hoursData", data);
   });
