@@ -1,27 +1,19 @@
 {
-  "name": "Effort Tracker",
-  "description": "Track member effort per card and visualise team load over time",
+  "name": "Team Effort Tracker",
+  "details": "Set each assigned member's % effort on a card, see cumulative workload per person, and view total team effort over time based on each card's start/due dates.",
   "icon": {
-    "url": "https://spyrosgg.github.io/Trello-utilisation-tracker/loft3d.svg"
+    "url": "./images/icon.svg"
   },
+  "author": "your-team",
   "capabilities": [
-    "card-details",
+    "card-badges",
+    "card-detail-badges",
     "board-buttons",
-    "plugin-data"
+    "show-settings"
   ],
   "connectors": {
     "iframe": {
-      "url": "https://spyrosgg.github.io/Trello-utilisation-tracker/connector.js"
+      "url": "./index.html"
     }
-  },
-  "apiVersion": "1.0",
-  "author": "Your Name",
-  "scopes": [
-    "read",
-    "write"
-  ],
-  "permissions": [
-    "user",
-    "board"
-  ]
+  }
 }
