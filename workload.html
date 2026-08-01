@@ -16,11 +16,14 @@
       </div>
 
       <div class="chart-section">
-        <p class="hint">Team estimated hours over time</p>
+        <p class="hint">Projected hours / person (today−7 → furthest due date)</p>
         <div class="chart-wrapper">
           <canvas id="hoursChart"></canvas>
         </div>
-        <p class="note">Each point is recorded when someone saves hour estimates.</p>
+        <p class="note">
+          Total hours ÷ (board members − 1).<br>
+          Linear burn-down from today to the latest card due date.
+        </p>
       </div>
     </div>
     <script src="js/workload.js"></script>
