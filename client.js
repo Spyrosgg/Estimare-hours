@@ -97,8 +97,8 @@ TrelloPowerUp.initialize({
     return [
       {
         icon: {
-          dark: HOURS_ICON,
-          light: HOURS_ICON
+          dark: 'https://spyrosgg.github.io/Estimare-hours/stats-report.svg',
+          light: 'https://spyrosgg.github.io/Estimare-hours/stats-report.svg'
         },
         text: "Workload",
         callback: function (t) {
