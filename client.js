@@ -32,7 +32,6 @@ TrelloPowerUp.initialize({
         return [];
       }
 
-      // Calculate total hours across all members on this card
       var total = 0;
       Object.keys(memberHours).forEach(function (id) {
         var val = parseFloat(memberHours[id]);
@@ -93,7 +92,7 @@ TrelloPowerUp.initialize({
     });
   },
 
-  // Board button for team workload overview
+  // Board button for team workload overview — use modal for more width
   "board-buttons": function (t, options) {
     return [
       {
@@ -103,10 +102,11 @@ TrelloPowerUp.initialize({
         },
         text: "Workload",
         callback: function (t) {
-          return t.popup({
+          return t.modal({
             title: "Team Workload (Hours)",
             url: "workload.html",
-            height: 560
+            fullscreen: false,
+            height: 600
           });
         }
       }
