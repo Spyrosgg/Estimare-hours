@@ -116,7 +116,7 @@ body {
 .note {
   font-size: 12px;
   color: #5e6c84;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .empty-state {
@@ -126,14 +126,23 @@ body {
   padding: 20px 0;
 }
 
-/* Chart section */
+/* Chart section – fixed height so it never expands */
 .chart-section {
-  margin-top: 20px;
+  margin-top: 16px;
   padding-top: 12px;
   border-top: 1px solid #ebecf0;
 }
 
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 160px;          /* hard limit */
+  max-height: 160px;
+  overflow: hidden;
+}
+
 #hoursChart {
-  max-width: 100%;
-  margin: 8px 0;
+  width: 100% !important;
+  height: 160px !important;
+  max-height: 160px !important;
 }
