@@ -42,6 +42,15 @@ t.render(async function () {
 
       container.innerHTML = "";
 
+      // Show capacity info
+      var info = document.createElement("p");
+      info.className = "note";
+      info.style.marginBottom = "10px";
+      info.innerHTML =
+        "Board members: <strong>" + memberCount + "</strong> → " +
+        "capacity = (" + memberCount + "−1)×37.5 = <strong>" + weeklyCapacity + "h / week</strong>";
+      container.appendChild(info);
+
       memberIds.forEach(function (id) {
         var member = membersMap[id];
         var name = member
@@ -65,7 +74,7 @@ t.render(async function () {
       });
     }
 
-    await renderUtilisationChart(byCard, weeklyCapacity);
+    await renderUtilisationChart(byCard, weeklyCapacity, memberCount);
     return t.sizeTo(document.body);
   } catch (err) {
     console.error("Workload error:", err);
@@ -77,19 +86,20 @@ t.render(async function () {
 
 /**
  * Utilisation chart
- * ----------------
- * - Only cards that have estimates are counted
- * - Each card’s hours are spread evenly across the weeks between
- *   its start date and due date (default window = 14 days if no due)
- * - Weekly utilisation = weekHours / ((members−1) × 37.5)
- * - X-axis shows months, data points are weekly
- * - Red vertical line = today
+ * -----------------
+ * Hours on a card = weekly hours (NOT total to spread).
+ * If a card overlaps a week, its FULL hours are added to that week.
+ *
+ * Utilisation % = weekHours / ((members − 1) × 37.5) × 100
+ *
+ * Only cards with estimates are counted.
+ * No due date → 14-day window starting today.
+ * Red line = today.
  */
-async function renderUtilisationChart(byCard, weeklyCapacity) {
+async function renderUtilisationChart(byCard, weeklyCapacity, memberCount) {
   var canvas = document.getElementById("hoursChart");
   if (!canvas) return;
 
-  // 1. Load cards with dates
   var cards = await t.cards("id", "due", "start");
   var cardMap = {};
   cards.forEach(function (c) {
@@ -99,17 +109,14 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
   var today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // 2. Determine overall date range
-  //    Start = 7 days before today (or earliest card start)
-  //    End   = furthest due (or today + 14)
   var rangeStart = new Date(today);
   rangeStart.setDate(rangeStart.getDate() - 7);
 
   var rangeEnd = new Date(today);
   rangeEnd.setDate(rangeEnd.getDate() + 14);
 
-  // Collect per-card hour windows
-  var cardWindows = []; // { hours, start, end }
+  // Collect cards that have estimates
+  var cardWindows = []; // { weeklyHours, start, end }
 
   Object.keys(byCard || {}).forEach(function (cardId) {
     var mh = byCard[cardId];
@@ -120,7 +127,7 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
       var h = parseFloat(mh[mid]);
       if (!isNaN(h) && h > 0) cardHours += h;
     });
-    if (cardHours <= 0) return; // only cards with estimates
+    if (cardHours <= 0) return;
 
     var card = cardMap[cardId];
     var start = null;
@@ -137,17 +144,14 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
 
     // Defaults
     if (!start && !end) {
-      // no dates → 14-day window starting today
       start = new Date(today);
       end = new Date(today);
       end.setDate(end.getDate() + 14);
     } else if (!start) {
-      // only due → 14 days before due
       end = end || new Date(today);
       start = new Date(end);
       start.setDate(start.getDate() - 14);
     } else if (!end) {
-      // only start → 14 days after start
       end = new Date(start);
       end.setDate(end.getDate() + 14);
     }
@@ -155,19 +159,17 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
     if (start < rangeStart) rangeStart = new Date(start);
     if (end > rangeEnd) rangeEnd = new Date(end);
 
-    cardWindows.push({ hours: cardHours, start: start, end: end });
+    cardWindows.push({ weeklyHours: cardHours, start: start, end: end });
   });
 
-  // Ensure rangeStart is at least 7 days before today
   var minStart = new Date(today);
   minStart.setDate(minStart.getDate() - 7);
   if (rangeStart > minStart) rangeStart = minStart;
 
-  // 3. Build weekly buckets
-  //    Align to Monday of the week containing rangeStart
+  // Build weekly buckets (Monday-aligned)
   function startOfWeek(d) {
-    var day = d.getDay(); // 0=Sun … 6=Sat
-    var diff = (day === 0 ? -6 : 1) - day; // move to Monday
+    var day = d.getDay();
+    var diff = (day === 0 ? -6 : 1) - day;
     var monday = new Date(d);
     monday.setDate(d.getDate() + diff);
     monday.setHours(0, 0, 0, 0);
@@ -175,14 +177,13 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
   }
 
   var weekStart = startOfWeek(rangeStart);
-  var weeks = []; // { start: Date, label: string, hours: number }
+  var weeks = [];
 
   var cursor = new Date(weekStart);
   while (cursor <= rangeEnd) {
     var weekEnd = new Date(cursor);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    // Label: show month name when the week starts a new month, otherwise day
     var label;
     if (cursor.getDate() <= 7 || weeks.length === 0) {
       label = cursor.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
@@ -200,32 +201,23 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
     cursor.setDate(cursor.getDate() + 7);
   }
 
-  // 4. Spread each card’s hours evenly across the weeks it overlaps
+  // KEY CHANGE: add the card's FULL weekly hours to every overlapping week
   cardWindows.forEach(function (win) {
-    var overlapping = [];
-    weeks.forEach(function (w, idx) {
-      // overlap if card window intersects the week
+    weeks.forEach(function (w) {
       if (win.end >= w.start && win.start <= w.end) {
-        overlapping.push(idx);
+        w.hours += win.weeklyHours;
       }
-    });
-
-    if (overlapping.length === 0) return;
-
-    var hoursPerWeek = win.hours / overlapping.length;
-    overlapping.forEach(function (idx) {
-      weeks[idx].hours += hoursPerWeek;
     });
   });
 
-  // 5. Convert to utilisation %
+  // Convert to utilisation %
   var labels = weeks.map(function (w) { return w.label; });
   var utilisation = weeks.map(function (w) {
     if (weeklyCapacity <= 0) return 0;
-    return Math.round((w.hours / weeklyCapacity) * 1000) / 10; // 1 decimal place
+    return Math.round((w.hours / weeklyCapacity) * 1000) / 10;
   });
 
-  // Find the week index that contains today (for the red line)
+  // Find the week that contains today
   var todayWeekIndex = -1;
   weeks.forEach(function (w, idx) {
     if (today >= w.start && today <= w.end) {
@@ -233,12 +225,10 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
     }
   });
 
-  // 6. Draw chart
   if (window._hoursChart) {
     window._hoursChart.destroy();
   }
 
-  // Custom plugin to draw a vertical red line at "today"
   var todayLinePlugin = {
     id: "todayLine",
     afterDraw: function (chart) {
@@ -260,7 +250,6 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
       ctx.stroke();
       ctx.restore();
 
-      // small "Today" label
       ctx.save();
       ctx.fillStyle = "#e74c3c";
       ctx.font = "10px -apple-system, BlinkMacSystemFont, sans-serif";
@@ -269,6 +258,9 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
       ctx.restore();
     }
   };
+
+  var maxUtil = Math.max.apply(null, utilisation.concat([0]));
+  var yMax = Math.max(100, Math.ceil(maxUtil / 20) * 20);
 
   window._hoursChart = new Chart(canvas, {
     type: "line",
@@ -297,7 +289,11 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
         tooltip: {
           callbacks: {
             label: function (ctx) {
-              return ctx.parsed.y + "% utilisation";
+              var weekHours = weeks[ctx.dataIndex] ? weeks[ctx.dataIndex].hours : 0;
+              return [
+                ctx.parsed.y + "% utilisation",
+                Math.round(weekHours * 10) / 10 + "h / " + weeklyCapacity + "h capacity"
+              ];
             }
           }
         }
@@ -305,7 +301,7 @@ async function renderUtilisationChart(byCard, weeklyCapacity) {
       scales: {
         y: {
           beginAtZero: true,
-          max: Math.max(100, Math.ceil(Math.max.apply(null, utilisation.concat([0])) / 10) * 10),
+          max: yMax,
           ticks: {
             font: { size: 10 },
             maxTicksLimit: 6,
