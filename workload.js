@@ -193,11 +193,20 @@ async function renderUtilisationChart(byCard, weeklyCapacity, memberCount) {
     var weekEnd = new Date(cursor);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    var label;
-    if (cursor.getDate() <= 7 || weeks.length === 0) {
-      label = cursor.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
-    } else {
-      label = cursor.getDate().toString();
+    // Label only the first week of each month so every month is visible.
+    // Include the year when the year changes (or on the first point).
+    var monthLabel = cursor.toLocaleDateString(undefined, { month: "short" });
+    var year = cursor.getFullYear();
+    var month = cursor.getMonth();
+    var prev = weeks.length > 0 ? weeks[weeks.length - 1] : null;
+    var isNewMonth = !prev || prev.start.getMonth() !== month || prev.start.getFullYear() !== year;
+    var label = "";
+    if (isNewMonth) {
+      if (!prev || prev.start.getFullYear() !== year) {
+        label = monthLabel + " " + year;
+      } else {
+        label = monthLabel;
+      }
     }
 
     weeks.push({
@@ -324,8 +333,11 @@ async function renderUtilisationChart(byCard, weeklyCapacity, memberCount) {
             maxRotation: 40,
             minRotation: 0,
             font: { size: 9 },
-            autoSkip: true,
-            maxTicksLimit: 10
+            autoSkip: false,
+            callback: function (value, index) {
+              // Show whatever label we set (empty string for mid-month weeks)
+              return this.getLabelForValue(value);
+            }
           }
         }
       }
