@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Team Workload</title>
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="styles.css" />
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   </head>
@@ -16,16 +16,17 @@
       </div>
 
       <div class="chart-section">
-        <p class="hint">Projected hours / person (today−7 → furthest due date)</p>
+        <p class="hint">Team utilisation by week</p>
         <div class="chart-wrapper">
           <canvas id="hoursChart"></canvas>
         </div>
         <p class="note">
-          Total hours ÷ (board members − 1).<br>
-          Linear burn-down from today to the latest card due date.
+          Weekly hours ÷ ((members − 1) × 37.5).<br>
+          Cards without a due date use a 14-day window.<br>
+          Red line = today.
         </p>
       </div>
     </div>
-    <script src="js/workload.js"></script>
+    <script src="workload.js"></script>
   </body>
 </html>
