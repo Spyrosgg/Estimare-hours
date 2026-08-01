@@ -10,7 +10,7 @@ body {
 
 .estimate-container,
 .workload-container {
-  max-width: 320px;
+  max-width: 480px;
 }
 
 .hint {
