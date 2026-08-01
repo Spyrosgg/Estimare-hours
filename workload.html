@@ -6,14 +6,21 @@
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.min.css" />
     <link rel="stylesheet" href="css/styles.css" />
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <!-- Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   </head>
   <body>
     <div class="workload-container">
-      <p class="hint">Total estimated hours across all cards on this board (by member).</p>
+      <p class="hint">Current estimated hours by team member</p>
       <div id="workload-list">
         <!-- Populated by JS -->
       </div>
-      <p class="note">Note: Only cards that have estimates set are included.</p>
+
+      <div class="chart-section">
+        <p class="hint">Team estimated hours over time</p>
+        <canvas id="hoursChart" width="300" height="180"></canvas>
+        <p class="note">Each point is recorded when someone saves hour estimates.</p>
+      </div>
     </div>
     <script src="js/workload.js"></script>
   </body>
