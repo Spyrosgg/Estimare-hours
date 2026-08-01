@@ -125,3 +125,15 @@ body {
   text-align: center;
   padding: 20px 0;
 }
+
+/* Chart section */
+.chart-section {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #ebecf0;
+}
+
+#hoursChart {
+  max-width: 100%;
+  margin: 8px 0;
+}
