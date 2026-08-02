@@ -87,7 +87,7 @@ TrelloPowerUp.initialize({
 
 
     badges.push({
-      text: effort + "% effort",
+      text: "eff" + effort + "%",
       color: effort > 100 ? "red" : "blue"
     });
 
