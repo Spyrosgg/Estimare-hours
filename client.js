@@ -26,51 +26,60 @@ TrelloPowerUp.initialize({
   },
 
   // Badges shown on the front of cards
-"card-badges": function (t, options) {
-  return Promise.all([
-    t.get("card", "shared", "memberHours"),
-    t.card("members")
-  ]).then(function (results) {
+  "card-badges": function (t, options) {
+    return Promise.all([
+      t.get("card", "shared", "memberHours"),
+      t.card("members"),
+      t.board("members")
+    ]).then(function (results) {
 
-    var memberHours = results[0];
-    var card = results[1];
+      var memberHours = results[0];
+      var card = results[1];
+      var board = results[2];
 
-    if (!memberHours || Object.keys(memberHours).length === 0) {
-      return [];
-    }
+      if (!memberHours || Object.keys(memberHours).length === 0) {
+        return [];
+      }
 
-    var members = {};
-    (card.members || []).forEach(function (m) {
-      members[m.id] = m.fullName || m.username;
-    });
+      var badges = [];
+      var total = 0;
 
-    var badges = [];
-    var total = 0;
+      // Map card members to names
+      var members = {};
+      (card.members || []).forEach(function (m) {
+        members[m.id] = m.fullName || m.username || "Unknown";
+      });
 
-    Object.keys(memberHours).forEach(function (id) {
-      var hours = parseFloat(memberHours[id]);
-      if (isNaN(hours) || hours <= 0) return;
+      // Display member hours
+      Object.keys(memberHours).forEach(function (id) {
 
-      total += hours;
+        var hours = parseFloat(memberHours[id]);
 
-      var name = members[id] || "Unknown";
-      var firstName = name.split(" ")[0];
+        if (isNaN(hours) || hours <= 0) return;
+
+        total += hours;
+
+        var name = members[id] || "Unknown";
+
+        badges.push({
+          text: name + ": " + hours + "h"
+        });
+      });
+
+      // Dynamic team capacity
+      var memberCount = (board.members || []).length;
+      var teamCapacity = Math.max(1, memberCount - 1) * 37.5;
+
+      // Card utilisation %
+      var utilisation = Math.round((total / teamCapacity) * 1000) / 10;
 
       badges.push({
-        text: firstName + ": " + hours + "h",
-        color: "green"
+        text: utilisation + "% utilisation"
       });
+
+      return badges;
     });
-
-    badges.push({
-      text: "Total: " + total + "h",
-      color: "blue"
-    });
-
-    return badges;
-  });
-},
-
+  },
   // Detail badges at the top of the card back
   "card-detail-badges": function (t, options) {
     return Promise.all([
@@ -102,29 +111,33 @@ TrelloPowerUp.initialize({
       var total = 0;
 
       (card.members || []).forEach(function (member) {
+
         var hours = parseFloat(memberHours[member.id]);
 
         if (isNaN(hours) || hours <= 0) return;
 
         total += hours;
 
-badges.push({
-  title: member.initials,
-  text: hours + "h",
-  callback: function (t) {
-    return t.popup({
-      title: "Hour Estimates",
-      url: "estimate.html",
-      height: 320
-    });
-  }
-});
-
-      badges.push({
-        title: "Total",
-        text: total + "h",
-        color: "green"
+        badges.push({
+          title: member.fullName || member.username,
+          text: hours + "h",
+          callback: function (t) {
+            return t.popup({
+              title: "Hour Estimates",
+              url: "estimate.html",
+              height: 320
+            });
+          }
+        });
       });
+
+      if (total > 0) {
+        badges.push({
+          title: "Total",
+          text: total + "h",
+          color: "green"
+        });
+      }
 
       return badges;
     });
