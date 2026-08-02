@@ -26,28 +26,50 @@ TrelloPowerUp.initialize({
   },
 
   // Badges shown on the front of cards
-  "card-badges": function (t, options) {
-    return t.get("card", "shared", "memberHours").then(function (memberHours) {
-      if (!memberHours || Object.keys(memberHours).length === 0) {
-        return [];
-      }
+"card-badges": function (t, options) {
+  return Promise.all([
+    t.get("card", "shared", "memberHours"),
+    t.card("members")
+  ]).then(function (results) {
 
-      var total = 0;
-      Object.keys(memberHours).forEach(function (id) {
-        var val = parseFloat(memberHours[id]);
-        if (!isNaN(val)) total += val;
-      });
+    var memberHours = results[0];
+    var card = results[1];
 
-      if (total === 0) return [];
+    if (!memberHours || Object.keys(memberHours).length === 0) {
+      return [];
+    }
 
-      return [
-        {
-          text: total + "h",
-          color: "blue"
-        }
-      ];
+    var members = {};
+    (card.members || []).forEach(function (m) {
+      members[m.id] = m.fullName || m.username;
     });
-  },
+
+    var badges = [];
+    var total = 0;
+
+    Object.keys(memberHours).forEach(function (id) {
+      var hours = parseFloat(memberHours[id]);
+      if (isNaN(hours) || hours <= 0) return;
+
+      total += hours;
+
+      var name = members[id] || "Unknown";
+      var firstName = name.split(" ")[0];
+
+      badges.push({
+        text: firstName + ": " + hours + "h",
+        color: "green"
+      });
+    });
+
+    badges.push({
+      text: "Total: " + total + "h",
+      color: "blue"
+    });
+
+    return badges;
+  });
+},
 
   // Detail badges at the top of the card back
   "card-detail-badges": function (t, options) {
