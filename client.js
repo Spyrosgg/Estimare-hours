@@ -63,7 +63,7 @@ TrelloPowerUp.initialize({
 
 
       badges.push({
-        text: member.initials + " " + hours + "h",
+        text: member.initials + ": " + hours + "h",
         color: "green"
       });
 
@@ -87,7 +87,7 @@ TrelloPowerUp.initialize({
 
 
     badges.push({
-      text: "eff" + effort + "%",
+      text: "TE: " + effort + "%",
       color: effort > 100 ? "red" : "blue"
     });
 
