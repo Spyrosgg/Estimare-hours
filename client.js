@@ -102,12 +102,17 @@ TrelloPowerUp.initialize({
 
         total += hours;
 
-        badges.push({
-          title: member.initials,
-          text: hours + "h",
-          color: "blue"
-        });
-      });
+badges.push({
+  title: member.initials,
+  text: hours + "h",
+  callback: function (t) {
+    return t.popup({
+      title: "Hour Estimates",
+      url: "estimate.html",
+      height: 320
+    });
+  }
+});
 
       badges.push({
         title: "Total",
