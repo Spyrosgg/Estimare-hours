@@ -67,7 +67,14 @@ TrelloPowerUp.initialize({
 
   // Detail badges at the top of the card back
   "card-detail-badges": function (t, options) {
-    return t.get("card", "shared", "memberHours").then(function (memberHours) {
+    return Promise.all([
+      t.get("card", "shared", "memberHours"),
+      t.card("members")
+    ]).then(function (results) {
+
+      var memberHours = results[0];
+      var card = results[1];
+
       if (!memberHours || Object.keys(memberHours).length === 0) {
         return [
           {
@@ -85,26 +92,30 @@ TrelloPowerUp.initialize({
         ];
       }
 
+      var badges = [];
       var total = 0;
-      Object.keys(memberHours).forEach(function (id) {
-        var val = parseFloat(memberHours[id]);
-        if (!isNaN(val)) total += val;
+
+      (card.members || []).forEach(function (member) {
+        var hours = parseFloat(memberHours[member.id]);
+
+        if (isNaN(hours) || hours <= 0) return;
+
+        total += hours;
+
+        badges.push({
+          title: member.initials,
+          text: hours + "h",
+          color: "blue"
+        });
       });
 
-      return [
-        {
-          title: "Hours",
-          text: total + "h total",
-          color: "blue",
-          callback: function (t) {
-            return t.popup({
-              title: "Hour Estimates",
-              url: "estimate.html",
-              height: 320
-            });
-          }
-        }
-      ];
+      badges.push({
+        title: "Total",
+        text: total + "h",
+        color: "green"
+      });
+
+      return badges;
     });
   },
 
