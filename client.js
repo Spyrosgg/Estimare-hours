@@ -39,30 +39,28 @@ TrelloPowerUp.initialize({
       return [];
     }
 
+    var members = {};
+    (card.members || []).forEach(function (m) {
+      members[m.id] = m.fullName || m.username;
+    });
+
     var badges = [];
     var total = 0;
 
-    (card.members || []).forEach(function (member) {
-      var hours = parseFloat(memberHours[member.id]);
-
+    Object.keys(memberHours).forEach(function (id) {
+      var hours = parseFloat(memberHours[id]);
       if (isNaN(hours) || hours <= 0) return;
 
       total += hours;
 
+      var name = members[id] || "Unknown";
+      var firstName = name.split(" ")[0];
+
       badges.push({
-        text: member.initials + ": " + hours + "h"
+        text: firstName + ": " + hours + "h",
+        color: "green"
       });
     });
-
-    if (total > 0) {
-      badges.push({
-        text: "Total: " + total + "h"
-      });
-    }
-
-    return badges;
-  });
-},
 
     badges.push({
       text: "Total: " + total + "h",
