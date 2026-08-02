@@ -171,9 +171,15 @@ async function renderUtilisationChart(byCard, weeklyCapacity, memberCount) {
     cardWindows.push({ weeklyHours: cardHours, start: start, end: end });
   });
 
-  var minStart = new Date(today);
-  minStart.setDate(minStart.getDate() - 7);
-  if (rangeStart > minStart) rangeStart = minStart;
+// Show at least the last 3 months, but never earlier than that
+var earliestAllowed = new Date(today);
+earliestAllowed.setMonth(earliestAllowed.getMonth() - 3);
+earliestAllowed.setHours(0, 0, 0, 0);
+
+// Don't allow the chart to start earlier than 3 months ago
+if (rangeStart < earliestAllowed) {
+  rangeStart = earliestAllowed;
+}
 
   // Build weekly buckets (Monday-aligned)
   function startOfWeek(d) {
